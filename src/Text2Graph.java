@@ -83,7 +83,7 @@ public class Text2Graph {
                     scanner.close();
                     return;
                 default:
-                    System.out.println("无效选项，请重新输入！");
+                    System.out.println("无效选项，请重新输入");
             }
         }
     }
