@@ -36,13 +36,13 @@ public class Text2Graph {
         // 启动交互式菜单
         while (true) {
             System.out.println("\n请选择操作:");
-            System.out.println("1. 显示有向图");
-            System.out.println("2. 查询桥接词");
-            System.out.println("3. 生成新文本");
-            System.out.println("4. 计算最短路径");
-            System.out.println("5. 计算 PageRank");
-            System.out.println("6. 随机游走");
-            System.out.println("0. 退出");
+            System.out.println("1.显示有向图");
+            System.out.println("2.查询桥接词");
+            System.out.println("3.生成新文本");
+            System.out.println("4.计算最短路径");
+            System.out.println("5.计算 PageRank");
+            System.out.println("6.随机游走");
+            System.out.println("0.退出");
 
             System.out.print("请输入选项：");
             int choice = scanner.nextInt();
