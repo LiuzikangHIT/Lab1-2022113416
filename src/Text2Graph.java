@@ -72,7 +72,7 @@ public class Text2Graph {
                     System.out.println(processor.calcShortestPath(startWord, endWord));
                     break;
                 case 5:
-                    System.out.print("请输入单词：");
+                    System.out.print("请输入目标单词：");
                     String prWord = scanner.nextLine();
                     System.out.printf("'%s' 的 PageRank 值为：%.4f\n", prWord, processor.calPageRank(prWord));
                     break;
