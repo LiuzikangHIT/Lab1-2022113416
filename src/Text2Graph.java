@@ -36,7 +36,7 @@ public class Text2Graph {
         // 启动交互式菜单
         while (true) {
             System.out.println("\n请选择操作:");
-            System.out.println("1.显示有向图");
+            System.out.println("1.展示有向图");
             System.out.println("2.查询桥接词");
             System.out.println("3.生成新文本");
             System.out.println("4.计算最短路径");
@@ -50,7 +50,7 @@ public class Text2Graph {
 
             switch (choice) {
                 case 1:
-                    processor.showDirectedGraphByCLI();
+                    processor.showDirectedGraphByGUI();
                     break;
                 case 2:
                     System.out.print("请输入第一个单词：");
@@ -83,7 +83,7 @@ public class Text2Graph {
                     scanner.close();
                     return;
                 default:
-                    System.out.println("无效选项，请重新输入！");
+                    System.out.println("无效选项，请重新输入");
             }
         }
     }
@@ -160,7 +160,7 @@ public class Text2Graph {
         word1 = word1.toLowerCase();
         word2 = word2.toLowerCase();
         if (!graph.containsKey(word1) || !graph.containsKey(word2)) {
-            return "输入的单词不在图中！";
+            return "输入的单词不在图中";
         }
 
         String finalWord = word2;
@@ -168,7 +168,7 @@ public class Text2Graph {
                 .filter(w3 -> graph.containsKey(w3) && graph.get(w3).containsKey(finalWord))
                 .collect(Collectors.toList());
 
-        if (bridges.isEmpty()) return "没有从 " + word1 + " 到 " + word2 + " 的桥接词！";
+        if (bridges.isEmpty()) return "没有从 " + word1 + " 到 " + word2 + " 的桥接词";
         return "桥接词：" + formatList(bridges);
     }
 
@@ -212,7 +212,7 @@ public class Text2Graph {
         word1 = word1.toLowerCase();
         word2 = word2.toLowerCase();
         if (!graph.containsKey(word1) || !graph.containsKey(word2))
-            return "输入的单词不在图中！";
+            return "输入的单词不在图中";
 
         Map<String, Integer> dist = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
