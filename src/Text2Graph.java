@@ -3,6 +3,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.stream.Collectors;
 
+import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.ui.view.Viewer;
@@ -12,9 +13,9 @@ import javax.swing.*;
 // 文本转图处理类
 public class Text2Graph {
     // 存储图结构，键为源节点，值为包含目标节点和权重的映射
-    private Map<String, Map<String, Integer>> graph = new HashMap<>();
+    private final Map<String, Map<String, Integer>> graph = new HashMap<>();
     // 存储每个节点的入边
-    private Map<String, List<String>> inEdges = new HashMap<>();
+    private final Map<String, List<String>> inEdges = new HashMap<>();
     // 存储每个节点的PageRank值
     private Map<String, Double> pageRankMap = new HashMap<>();
 
@@ -22,79 +23,75 @@ public class Text2Graph {
     public static void main(String[] args) {
         Text2Graph processor = new Text2Graph();
         Scanner scanner = new Scanner(System.in);
-        String filePath = "./test/test.txt";
+        String filePath = "./test/Easy Test.txt";
 
         // 处理文本文件并计算PageRank
         try {
             processor.processTextFile(filePath);
             processor.computePageRank(0.85, 100, 0.0001);
         } catch (IOException e) {
-            System.out.println("读取文件时出错：" + e.getMessage());
+            System.out.println("Error reading file: " + e.getMessage());
             return;
         }
 
         // 启动交互式菜单
         while (true) {
-            System.out.println("\n请选择操作:");
-            System.out.println("1.展示有向图");
-            System.out.println("2.查询桥接词");
-            System.out.println("3.生成新文本");
-            System.out.println("4.计算最短路径");
-            System.out.println("5.计算 PageRank");
-            System.out.println("6.随机游走");
-            System.out.println("0.退出");
+            System.out.println("\n=== Function ===");
+            System.out.println("1. Show graph");
+            System.out.println("2. Bridge words");
+            System.out.println("3. Generate text");
+            System.out.println("4. Shortest path");
+            System.out.println("5. PageRank");
+            System.out.println("6. Random walk");
+            System.out.println("0. Exit");
 
-            System.out.print("请输入选项：");
+            System.out.print("Enter choice: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // 消耗换行符
 
             switch (choice) {
                 case 1:
-                    processor.showDirectedGraphByGUI();
+                    processor.showDirectedGraph(processor.graph);
                     break;
                 case 2:
-                    System.out.print("请输入第一个单词：");
-                    String word1 = scanner.nextLine().toLowerCase();
-                    System.out.print("请输入第二个单词：");
-                    String word2 = scanner.nextLine().toLowerCase();
-                    System.out.println(processor.queryBridgeWords(word1, word2));
+                    System.out.print("Enter two words: ");
+                    String[] words = scanner.nextLine().toLowerCase().split("\\s+");
+                    System.out.println(processor.queryBridgeWords(words[0], words[1]));
                     break;
                 case 3:
-                    System.out.print("请输入文本：");
-                    String text = scanner.nextLine();
-                    System.out.println("生成的新文本：" + processor.generateNewText(text));
+                    System.out.print("Enter text: ");
+                    String inputText = scanner.nextLine();
+                    System.out.println("New text: " + processor.generateNewText(inputText));
                     break;
                 case 4:
-                    System.out.print("请输入起点单词：");
-                    String startWord = scanner.nextLine().toLowerCase();
-                    System.out.print("请输入终点单词：");
-                    String endWord = scanner.nextLine().toLowerCase();
-                    System.out.println(processor.calcShortestPath(startWord, endWord));
+                    System.out.print("Enter two words: ");
+                    String[] words_ = scanner.nextLine().toLowerCase().split("\\s+");
+                    System.out.println(processor.calcShortestPath(words_[0], words_[1]));
                     break;
                 case 5:
-                    System.out.print("请输入目标单词：");
-                    String prWord = scanner.nextLine();
-                    System.out.printf("'%s' 的 PageRank 值为：%.4f\n", prWord, processor.calPageRank(prWord));
+                    System.out.print("Enter word: ");
+                    String prWord = scanner.nextLine().toLowerCase();
+                    System.out.printf("PageRank of '%s': %.4f\n", prWord, processor.calPageRank(prWord));
                     break;
                 case 6:
-                    System.out.println("随机游走结果：" + processor.randomWalk());
+                    System.out.println("Random walk: " + processor.randomWalk());
                     break;
                 case 0:
                     scanner.close();
-                    return;
+                    System.exit(0);
                 default:
-                    System.out.println("无效选项，请重新输入");
+                    System.out.println("Invalid choice");
             }
         }
     }
 
     // 处理文本文件，构建图结构
-    private void processTextFile(String filePath) throws IOException {
+    void processTextFile(String filePath) throws IOException {
         String content = Files.readString(Paths.get(filePath));
         content = content.replaceAll("[^a-zA-Z]", " ").toLowerCase();
         List<String> words = Arrays.stream(content.split("\\s+"))
                 .filter(w -> !w.isEmpty())
-                .collect(Collectors.toList());
+                .toList();
 
         for (int i = 0; i < words.size() - 1; i++) {
             String current = words.get(i);
@@ -108,68 +105,87 @@ public class Text2Graph {
         allNodes.forEach(word -> graph.putIfAbsent(word, new HashMap<>()));
     }
 
-    // 在命令行展示图结构
-    public void showDirectedGraphByCLI() {
-        graph.forEach((src, edges) -> {
+    // 使用GraphStream在CLI中展示图结构
+    public void showDirectedGraph(Map<String, Map<String, Integer>> G) {
+        G.forEach((src, edges) -> {
             System.out.print("\n" + src + " → ");
             edges.forEach((dest, weight) -> System.out.print(dest + "(" + weight + ") "));
         });
         System.out.println();
-    }
 
-    // 使用GraphStream在GUI中展示图结构
-    public void showDirectedGraphByGUI() {
-        new Thread(() -> {
-            System.setProperty("org.graphstream.ui", "swing");
-            org.graphstream.graph.Graph gsGraph = new SingleGraph("Text Graph");
-            gsGraph.setAttribute("ui.stylesheet",
-                    "node { fill-color: #4682B4; size: 30px; text-size: 30px; text-alignment: above; }" +
-                            "edge { text-alignment: along; text-size: 30px; text-alignment: along; }");
+        System.setProperty("org.graphstream.ui", "swing");
+        org.graphstream.graph.Graph gsGraph = new SingleGraph("Text Graph", false, true);
+        gsGraph.setAttribute("ui.stylesheet",
+                "node { " +
+                        "   fill-color: #4682B4; " +
+                        "   size: 30px; " +
+                        "   text-size: 30px; " +
+                        "   text-alignment: above; " +
+                        "} " +
+                        "edge { " +
+                        "   fill-color: #777777; " +
+                        "   size: 2px; " +
+                        "   shape: line; " +
+                        "   arrow-shape: arrow; " +
+                        "   arrow-size: 10px, 5px; " +
+                        "   text-alignment: along; " +
+                        "   text-size: 30px; " +
+                        "}");
 
-            Set<String> allNodes = new HashSet<>();
-            graph.forEach((src, edges) -> {
-                allNodes.add(src);
-                allNodes.addAll(edges.keySet());
+        Set<String> allNodes = new HashSet<>();
+        G.forEach((src, edges) -> {
+            allNodes.add(src);
+            allNodes.addAll(edges.keySet());
+        });
+
+        SwingUtilities.invokeLater(() -> {
+            allNodes.forEach(node -> {
+                org.graphstream.graph.Node n = gsGraph.addNode(node);
+                n.setAttribute("ui.label", node);
             });
+        });
 
-            SwingUtilities.invokeLater(() -> {
-                allNodes.forEach(node -> {
-                    org.graphstream.graph.Node n = gsGraph.addNode(node);
-                    n.setAttribute("ui.label", node);
-                });
-            });
-
-            SwingUtilities.invokeLater(() -> {
-                int edgeId = 0;
-                for (String src : graph.keySet()) {
-                    Map<String, Integer> edges = graph.get(src);
-                    for (String dest : edges.keySet()) {
-                        String edge = src + dest + (edgeId++);
-                        gsGraph.addEdge(edge, src, dest).setAttribute("ui.label", edges.get(dest));
-                    }
+        SwingUtilities.invokeLater(() -> {
+            int edgeId = 0;
+            for (String src : G.keySet()) {
+                Map<String, Integer> edges = G.get(src);
+                for (String dest : edges.keySet()) {
+                    String edgeIdStr = "edge_" + edgeId++;
+                    org.graphstream.graph.Edge e = gsGraph.addEdge(edgeIdStr, src, dest, true); // 最后一个参数true表示有向边
+                    e.setAttribute("ui.label", edges.get(dest));
                 }
-            });
+            }
+        });
 
-            Viewer viewer = gsGraph.display();
-            viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.HIDE_ONLY);
-        }).start();
+        Viewer viewer = gsGraph.display();
+        viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.HIDE_ONLY);
+
+        try {
+            FileSinkImages pic = FileSinkImages.createDefault();
+            pic.setOutputType(FileSinkImages.OutputType.PNG);
+            pic.setLayoutPolicy(FileSinkImages.LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE);   // 布局铺满
+
+            // 保存文件
+            String filename = "test/graph.png";
+            pic.writeAll(gsGraph, filename);
+            System.out.println("图片已保存至: " + new File(filename).getAbsolutePath());
+        } catch (Exception e) {
+            System.err.println("保存图片失败: " + e.getMessage());
+        }
     }
 
     // 查询两个单词之间的桥接词
     public String queryBridgeWords(String word1, String word2) {
-        word1 = word1.toLowerCase();
-        word2 = word2.toLowerCase();
         if (!graph.containsKey(word1) || !graph.containsKey(word2)) {
-            return "输入的单词不在图中";
+            return "No " + word1 + " or " + word2 + " in the graph!";
         }
 
-        String finalWord = word2;
         List<String> bridges = graph.get(word1).keySet().stream()
-                .filter(w3 -> graph.containsKey(w3) && graph.get(w3).containsKey(finalWord))
+                .filter(word3 -> graph.containsKey(word3) && graph.get(word3).containsKey(word2))
                 .collect(Collectors.toList());
 
-        if (bridges.isEmpty()) return "没有从 " + word1 + " 到 " + word2 + " 的桥接词";
-        return "桥接词：" + formatList(bridges);
+        if (bridges.isEmpty()) return "No bridge words from " + word1 + " to " + word2 + "!";
+        return "The bridge words from " + word1 + " to " + word2 + " are: " + formatList(bridges) + ".";
     }
 
     // 格式化列表为字符串
@@ -183,7 +199,7 @@ public class Text2Graph {
         List<String> words = Arrays.stream(inputText.split("[^a-zA-Z]+"))
                 .filter(w -> !w.isEmpty())
                 .map(String::toLowerCase)
-                .collect(Collectors.toList());
+                .toList();
         if (words.size() < 2) return inputText;
 
         List<String> result = new ArrayList<>();
@@ -209,10 +225,8 @@ public class Text2Graph {
 
     // 计算两个单词之间的最短路径
     public String calcShortestPath(String word1, String word2) {
-        word1 = word1.toLowerCase();
-        word2 = word2.toLowerCase();
         if (!graph.containsKey(word1) || !graph.containsKey(word2))
-            return "输入的单词不在图中";
+            return "No " + word1 + " or " + word2 + " in the graph!";
 
         Map<String, Integer> dist = new HashMap<>();
         Map<String, String> prev = new HashMap<>();
@@ -235,11 +249,11 @@ public class Text2Graph {
                     });
         }
 
-        if (dist.get(word2) == Integer.MAX_VALUE) return "从 " + word1 + " 到 " + word2 + " 无路径";
+        if (dist.get(word2) == Integer.MAX_VALUE) return "No path from " + word1 + " to " + word2 + ".";
         List<String> path = new ArrayList<>();
         for (String at = word2; at != null; at = prev.get(at)) path.add(at);
         Collections.reverse(path);
-        return "最短路径：" + String.join(" → ", path) + "（长度：" + dist.get(word2) + "）";
+        return "Path: " + String.join(" → ", path) + " (Length: " + dist.get(word2) + ")";
     }
 
     // 计算PageRank值
@@ -286,7 +300,7 @@ public class Text2Graph {
 
     // 获取单词的PageRank值
     public double calPageRank(String word) {
-        return pageRankMap.getOrDefault(word.toLowerCase(), 0.0);
+        return pageRankMap.getOrDefault(word, 0.0);
     }
 
     // 随机游走
