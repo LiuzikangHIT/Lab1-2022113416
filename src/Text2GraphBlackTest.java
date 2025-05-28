@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 
-class Text2GraphTest {
+class Text2GraphBlackTest {
     private Text2Graph processor;
 
     @BeforeEach
